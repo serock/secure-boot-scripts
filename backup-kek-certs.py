@@ -10,16 +10,16 @@ init()
 
 try:
     uv = UefiVariable()
-    uefiVar = uv.GetUefiVar(name="KEK", guid="8be4df61-93ca-11d2-aa0d-00e098032b8c")
-    if uefiVar[0] != 0:
+    uefi_var = uv.GetUefiVar(name="KEK", guid="8be4df61-93ca-11d2-aa0d-00e098032b8c")
+    if uefi_var[0] != 0:
         raise RuntimeError("Failed to get UEFI variable KEK")
 
     problem = True
     microsoft_kek_2023_cert_name = "Microsoft Corporation KEK 2K CA 2023"
-    with BytesIO(uefiVar[1]) as buffer:
-        efiSigDb = EfiSignatureDatabase(buffer)
+    with BytesIO(uefi_var[1]) as buffer:
+        efi_sig_db = EfiSignatureDatabase(buffer)
         i = 0
-        for esl in efiSigDb.esl_list:
+        for esl in efi_sig_db.esl_list:
             if esl.signature_type != EfiSignatureDataFactory.EFI_CERT_X509_GUID:
                 raise ValueError(f"Unsupported signature type: {efiSigList.signature_type}")
 

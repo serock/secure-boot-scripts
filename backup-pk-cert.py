@@ -10,17 +10,17 @@ init()
 
 try:
     uv = UefiVariable()
-    uefiVar = uv.GetUefiVar(name="PK", guid="8be4df61-93ca-11d2-aa0d-00e098032b8c")
-    if uefiVar[0] != 0:
+    uefi_var = uv.GetUefiVar(name="PK", guid="8be4df61-93ca-11d2-aa0d-00e098032b8c")
+    if uefi_var[0] != 0:
         raise RuntimeError("Failed to get UEFI variable PK")
 
-    with BytesIO(uefiVar[1]) as buffer:
-        efiSigDb = EfiSignatureDatabase(buffer)
-        efiSigList = efiSigDb.esl_list[0];
-        if efiSigList.signature_type != EfiSignatureDataFactory.EFI_CERT_X509_GUID:
+    with BytesIO(uefi_var[1]) as buffer:
+        efi_sig_db = EfiSignatureDatabase(buffer)
+        efi_sig_list = efi_sig_db.esl_list[0];
+        if efi_sig_list.signature_type != EfiSignatureDataFactory.EFI_CERT_X509_GUID:
             raise ValueError(f"Unsupported signature type: {efiSigList.signature_type}")
 
-        cert_data = efiSigList.signature_data_list[0].signature_data
+        cert_data = efi_sig_list.signature_data_list[0].signature_data
         with open("PK.cer", "wb") as f:
             f.write(cert_data)
 
