@@ -31,24 +31,27 @@ try:
             subject_name = cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
             if subject_name == microsoft_kek_2023_cert_name:
                 no_microsoft_kek_203_cert = false
-            print(f"Saved the KEK cert, {Style.BRIGHT}{subject_name}{Style.RESET_ALL}, to KEK{i}.cer")
 
-            expiration_date = cert.not_valid_after_utc.date()
-            date_delta = expiration_date - datetime.now(timezone.utc).date()
-            cert_expired = date_delta.days < 0
+            expiration_time = cert.not_valid_after_utc
+            now = datetime.now(timezone.utc)
+            time_delta = expiration_time - now
+            cert_expired = expiration_time < now
 
-            if date_delta.days < 60:
-                style_expiration_date = f"{Fore.RED}{Style.BRIGHT}"
-            elif date_delta.days < 120:
-                style_expiration_date = f"{Fore.YELLOW}{Style.BRIGHT}"
+            style_subject_name = f"{Fore.RED}{Style.BRIGHT}" if cert_expired else f"{Fore.GREEN}{Style.BRIGHT}"
+            print(f"Saved the KEK cert, {style_subject_name}{subject_name}{Style.RESET_ALL}, to KEK{i}.cer")
+
+            if time_delta.days < 60:
+                style_expiration = f"{Fore.RED}{Style.BRIGHT}"
+            elif time_delta.days < 120:
+                style_expiration = f"{Fore.YELLOW}{Style.BRIGHT}"
             else:
-                style_expiration_date = f"{Fore.GREEN}{Style.BRIGHT}"
+                style_expiration = f"{Fore.GREEN}{Style.BRIGHT}"
 
             if cert_expired:
-                print(f"  {Fore.RED}{Style.BRIGHT}This KEK cert expired on {expiration_date}.{Style.RESET_ALL}")
+                print(f"  {Fore.RED}{Style.BRIGHT}This KEK cert expired on {expiration_time.date()}.{Style.RESET_ALL}")
                 print(f"  {Fore.RED}Consider removing this KEK cert.{Style.RESET_ALL}")
             else:
-                print(f"  This KEK cert will expire on {style_expiration_date}{expiration_date}{Style.RESET_ALL}.")
+                print(f"  This KEK cert will expire on {style_expiration}{expiration_time.date()}{Style.RESET_ALL}.")
             i += 1
 
         if no_microsoft_kek_203_cert:
