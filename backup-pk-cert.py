@@ -26,32 +26,33 @@ try:
 
         cert = x509.load_der_x509_certificate(cert_data)
         subject_name = cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
-        expiration_date = cert.not_valid_after_utc.date()
-        date_delta = expiration_date - datetime.now(timezone.utc).date()
+        expiration_time = cert.not_valid_after_utc
+        now = datetime.now(timezone.utc)
+        time_delta = expiration_time - now
 
         bad_cert = "DO NOT SHIP" in subject_name or "DO NOT TRUST" in subject_name
-        cert_expired = date_delta.days < 0
+        cert_expired = expiration_time < now
 
         style_subject_name = f"{Fore.RED}{Style.BRIGHT}" if bad_cert or cert_expired else f"{Fore.GREEN}{Style.BRIGHT}"
         print(f"Saved the PK cert, {style_subject_name}{subject_name}{Style.RESET_ALL}, to PK.cer")
-
-        should_replace_cert = bad_cert or date_delta.days < 60
 
         if bad_cert:
             print(f"  {Fore.RED}{Style.BRIGHT}This PK cert was issued with an untrusted key.{Style.RESET_ALL}")
             print(f"  {Fore.RED}Go to https://www.kb.cert.org/vuls/id/455367 for more info.{Style.RESET_ALL}")
 
-        if date_delta.days < 60:
-            style_expiration_date = f"{Fore.RED}{Style.BRIGHT}"
-        elif date_delta.days < 120:
-            style_expiration_date = f"{Fore.YELLOW}{Style.BRIGHT}"
+        if time_delta.days < 60:
+            style_expiration = f"{Fore.RED}{Style.BRIGHT}"
+        elif time_delta.days < 120:
+            style_expiration = f"{Fore.YELLOW}{Style.BRIGHT}"
         else:
-            style_expiration_date = f"{Fore.GREEN}{Style.BRIGHT}"
+            style_expiration = f"{Fore.GREEN}{Style.BRIGHT}"
 
         if cert_expired:
-            print(f"  {Fore.RED}{Style.BRIGHT}This PK cert expired on {expiration_date}.{Style.RESET_ALL}")
+            print(f"  {Fore.RED}{Style.BRIGHT}This PK cert expired on {expiration_time.date()}.{Style.RESET_ALL}")
         else:
-            print(f"  This PK cert will expire on {style_expiration_date}{expiration_date}{Style.RESET_ALL}.")
+            print(f"  This PK cert will expire on {style_expiration}{expiration_time.date()}{Style.RESET_ALL}.")
+
+        should_replace_cert = bad_cert or time_delta.days < 60
 
         if should_replace_cert:
             print(f"  {Fore.RED}Consider replacing this cert with the {Style.BRIGHT}Windows OEM Devices PK{Style.NORMAL} cert.{Style.RESET_ALL}")
