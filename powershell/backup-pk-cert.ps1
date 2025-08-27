@@ -73,8 +73,8 @@ Write-Host $subjectName -NoNewline -ForegroundColor $styleSubjectName
 Write-Host ", to PK.cer"
 
 if ($badCert) {
-    Write-Host "This PK cert was issued with an untrusted key" -ForegroundColor Red
-    Write-Host "  Go to https://www.kb.cert.org/vuls/id/455367 for more info." -ForegroundColor Red
+    Write-Host "  This PK cert was issued with an untrusted key" -ForegroundColor Red
+    Write-Host "    Go to https://www.kb.cert.org/vuls/id/455367 for more info" -ForegroundColor Red
 }
 
 if ($timeDelta.TotalDays -lt 60) { $styleExpiration = "Red" }
@@ -82,19 +82,17 @@ elseif ($timeDelta.TotalDays -lt 120) { $styleExpiration = "Yellow" }
 else { $styleExpiration = "Green" }
 
 if ($certExpired) {
-    Write-Host "  This PK cert expired on " -NoNewline -ForegroundColor Red
-    Write-Host $expirationTime.ToString("yyyy-MM-dd") -NoNewline -ForegroundColor Red
-    Write-Host "." -ForegroundColor Red
+    Write-Host ("  This PK cert expired on " + $expirationTime.ToString("yyyy-MM-dd")) -ForegroundColor Red
 } else {
     Write-Host "  This PK cert will expire on " -NoNewline
-    Write-Host $expirationTime.ToString("yyyy-MM-dd") -NoNewline -ForegroundColor $styleExpiration
-    Write-Host "."
+    Write-Host $expirationTime.ToString("yyyy-MM-dd") -ForegroundColor $styleExpiration
 }
+Write-Host ("  The signature owner is " + $signatureOwner)
 
 $shouldReplaceCert = $bad_cert -or $timeDelta.TotalDays -lt 60
 
 if ($shouldReplaceCert) {
     Write-Host "Consider replacing this cert with the " -NoNewline -ForegroundColor DarkRed
     Write-Host "Windows OEM Devices PK" -NoNewline -ForegroundColor Red
-    Write-Host " cert." -ForegroundColor DarkRed
+    Write-Host " cert" -ForegroundColor DarkRed
 }

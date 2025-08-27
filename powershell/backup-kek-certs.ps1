@@ -92,7 +92,7 @@ while ($byteIndex -lt $signatureDatabase.Length - 1) {
     else { $styleExpiration = "Green" }
 
     if ($certExpired) {
-        Write-Host ("  This KEK cert expired on " + $expirationTime.ToString("yyyy-MM-dd")) -NoNewline -ForegroundColor Red
+        Write-Host ("  This KEK cert expired on " + $expirationTime.ToString("yyyy-MM-dd")) -ForegroundColor Red
     } else {
         Write-Host "  This KEK cert will expire on " -NoNewline
         Write-Host $expirationTime.ToString("yyyy-MM-dd") -ForegroundColor $styleExpiration
@@ -106,5 +106,5 @@ while ($byteIndex -lt $signatureDatabase.Length - 1) {
 if ($noMicrosoftKek2023Cert) {
     Write-Host "Consider adding the " -NoNewline -ForegroundColor DarkRed
     Write-Host $MICROSOFT_KEK_2023_CERT_NAME  -NoNewline -ForegroundColor Red
-    Write-Host " cert." -ForegroundColor DarkRed
+    Write-Host " cert" -ForegroundColor DarkRed
 }
