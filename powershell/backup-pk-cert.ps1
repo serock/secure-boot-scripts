@@ -35,7 +35,7 @@ $efiSignatureList = $signatureDatabase
 $signatureType = [Guid] [Byte[]] $efiSignatureList[0 .. 15]
 # SignatureType should be an EFI_CERT_X509_GUID
 if ($signatureType -ne $EFI_CERT_X509_GUID) {
-    throw "Unsupported signature type: $EFI_CERT_X509_GUID"
+    throw "Unsupported signature type: $signatureType"
 }
 $signatureListSize = ToUInt32 -ByteArray ([Byte[]] $efiSignatureList[16 .. 19])
 # Signature Database should have one EFI Signature List

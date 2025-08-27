@@ -14,7 +14,7 @@ try:
     if uefi_var[0] != 0:
         raise RuntimeError("Failed to get UEFI variable KEK")
 
-    no_microsoft_kek_203_cert = True
+    no_microsoft_kek_2023_cert = True
     microsoft_kek_2023_cert_name = "Microsoft Corporation KEK 2K CA 2023"
     with BytesIO(uefi_var[1]) as buffer:
         efi_sig_db = EfiSignatureDatabase(buffer)
@@ -30,7 +30,7 @@ try:
             cert = x509.load_der_x509_certificate(cert_data)
             subject_name = cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
             if subject_name == microsoft_kek_2023_cert_name:
-                no_microsoft_kek_203_cert = false
+                no_microsoft_kek_2023_cert = false
 
             expiration_time = cert.not_valid_after_utc
             now = datetime.now(timezone.utc)
@@ -54,7 +54,7 @@ try:
                 print(f"  This KEK cert will expire on {style_expiration}{expiration_time.date()}{Style.RESET_ALL}.")
             i += 1
 
-        if no_microsoft_kek_203_cert:
+        if no_microsoft_kek_2023_cert:
             print(f"{Fore.RED}Consider adding the {Style.BRIGHT}{microsoft_kek_2023_cert_name}{Style.NORMAL} cert.{Style.RESET_ALL}")
                     
 except (RuntimeError, ValueError) as err:
