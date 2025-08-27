@@ -48,14 +48,16 @@ try:
                 style_expiration = f"{Fore.GREEN}{Style.BRIGHT}"
 
             if cert_expired:
-                print(f"  {Fore.RED}{Style.BRIGHT}This KEK cert expired on {expiration_time.date()}.{Style.RESET_ALL}")
-                print(f"  {Fore.RED}Consider removing this KEK cert.{Style.RESET_ALL}")
+                print(f"  {Fore.RED}{Style.BRIGHT}This KEK cert expired on {expiration_time.date()}{Style.RESET_ALL}")
             else:
-                print(f"  This KEK cert will expire on {style_expiration}{expiration_time.date()}{Style.RESET_ALL}.")
+                print(f"  This KEK cert will expire on {style_expiration}{expiration_time.date()}{Style.RESET_ALL}")
+
+            print(f"  The signature owner is {esl.signature_data_list[0].signature_owner}")
+
             i += 1
 
         if no_microsoft_kek_2023_cert:
-            print(f"{Fore.RED}Consider adding the {Style.BRIGHT}{microsoft_kek_2023_cert_name}{Style.NORMAL} cert.{Style.RESET_ALL}")
+            print(f"{Fore.RED}Consider adding the {Style.BRIGHT}{microsoft_kek_2023_cert_name}{Style.NORMAL} cert{Style.RESET_ALL}")
                     
 except (RuntimeError, ValueError) as err:
     print(f"{Fore.RED}{Style.BRIGHT}ERROR: {err}{Style.RESET_ALL}")
