@@ -6,7 +6,7 @@ The secure boot configuration was updated by following Microsoft's [Mitigation d
 
 ### PK certificate
 
-The `PK` certificate, which should not have been used and has expired.
+The `PK` certificate, which should not have been used and has expired, was not changed by following the *Mitigation deployment guidelines* mentioned above.
 
 ```
 Version: 3 (0x2)
@@ -22,7 +22,7 @@ Subject: CN = DO NOT SHIP - PK
 
 ### KEK certificate
 
-There was only one `KEK` certificate.
+The one `KEK` certificate was not changed by following the *Mitigation deployment guidelines*.
 
 ```
 Version: 3 (0x2)
@@ -38,7 +38,7 @@ Subject: C = US, ST = Washington, L = Redmond, O = Microsoft Corporation, CN = M
 
 ### Certificates in db
 
-There were three certificates in `db`.
+Of the three certificates in `db`, only the **Windows UEFI CA 2023** certificate was added by following the *Mitigation deployment guidelines*; the other two certificates were not changed.
 
 ```
 [1]:
@@ -80,8 +80,8 @@ Subject: C = US, O = Microsoft Corporation, CN = Windows UEFI CA 2023
 
 ### Certificates in dbx
 
-There was one certificate in `dbx` along with many hashes.
-The certificate was also in `db`.
+The only certificate in `dbx`, **Microsoft Windows Production PCA 2011**, was added by following the *Mitigation deployment guidelines*.
+This certificate was also in `db`.
 
 ```
 Version: 3 (0x2)
@@ -95,16 +95,15 @@ Validity
 Subject: C = US, ST = Washington, L = Redmond, O = Microsoft Corporation, CN = Microsoft Windows Production PCA 2011
 ```
 
-## Other Changes
+## Planning Other Secure Boot Certificate Changes to be Applied Manually
 
 Other changes to the certificates were made to resolve various issues.
 
 ### Replacing the PK Certificate
 
 The non-production PK certificate needed to be replaced with a production PK certificate.
-It seemed obvious that Dell was never going to provide a replacement PK certificate for their Inspiron 3847.
-Although I could have created and managed my own private key and PK certificate, I did not want to do so.
-Instead, I decided to use Microsoft's [Windows OEM Devices PK](https://www.microsoft.com/pkiops/oem/windows%20oem%20devices%20pk.cer) certificate:
+It was clear that Dell was never going to provide a replacement PK certificate for the Inspiron 3847.
+Although I could have created and managed my own private key and PK certificate, I decided instead to replace the old PK certificate with Microsoft's **Windows OEM Devices PK** certificate because doing that was less work for me.
 
 ```
 Version: 3 (0x2)
@@ -120,8 +119,8 @@ Subject: C = US, ST = Washington, L = Redmond, O = Microsoft Corporation, CN = W
 
 ### Adding a Newer KEK Certificate
 
-The *Microsoft Corporation KEK CA 2011* certificate was still needed because Microsoft used it when signing the June 2025 `dbx` update.
-With the certificate expiring in June 2026, I decided to add the newer [Microsoft Corporation KEK 2K CA 2023](https://www.microsoft.com/pkiops/certs/microsoft%20corporation%20kek%202k%20ca%202023.crt) certificate:
+The **Microsoft Corporation KEK CA 2011** certificate was still needed because Microsoft used it when signing the June 2025 `dbx` update, which was the latest update available in August 2025.
+With the certificate expiring in June 2026, I decided to add the newer **Microsoft Corporation KEK 2K CA 2023** certificate:
 
 ```
         Version: 3 (0x2)
@@ -133,4 +132,40 @@ With the certificate expiring in June 2026, I decided to add the newer [Microsof
             Not Before: Mar  2 20:21:35 2023 GMT
             Not After : Mar  2 20:31:35 2038 GMT
         Subject: C = US, O = Microsoft Corporation, CN = Microsoft Corporation KEK 2K CA 2023
+```
+
+### Updating Certificates in db
+
+## Applying the Other Secure Boot Certificate Changes
+
+```
+$execPolicy = Get-ExecutionPolicy -Scope Process
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
+
+New-Item -Path C:\ -Name secure-boot -ItemType Directory
+Set-Location -Path C:\secure-boot\
+
+Invoke-WebRequest -Uri "https://github.com/microsoft/secureboot_objects/raw/main/scripts/windows/InstallSecureBootKeys.ps1" -OutFile InstallSecureBootKeys.ps1
+Unblock-File -LiteralPath C:\secure-boot\InstallSecureBootKeys.ps1 -Confirm
+
+Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=321185"  -OutFile MicCorKEKCA2011-2011-06-24.der
+Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=321192"  -OutFile MicWinProPCA2011-2011-10-19.der
+Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=321194"  -OutFile MicCorUEFCA2011-2011-06-27.der
+Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=2239775" -OutFile microsoft-corporation-kek-2k-ca-2023.der
+Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=2239776" -OutFile windows-uefi-ca-2023.der
+Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=2239872" -OutFile microsoft-uefi-ca-2023.der
+Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=2255361" -OutFile windows-oem-devices-pk.der
+Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=2284009" -OutFile microsoft-option-rom-uefi-ca-2023.der
+
+Format-SecureBootUEFI -Name DBX -ContentFilePath DBX.bin -SignatureOwner 00000000-0000-0000-0000-000000000000 -Hash 0000000000000000000000000000000000000000000000000000000000000000 -Algorithm SHA256
+
+Format-SecureBootUEFI -Name DB  -ContentFilePath DB.bin  -SignatureOwner 77fa9abd-0359-4d32-bd60-28f4e78f784b -FormatWithCert -CertificateFilePath windows-uefi-ca-2023.der,microsoft-uefi-ca-2023.der,microsoft-option-rom-uefi-ca-2023.der
+
+Format-SecureBootUEFI -Name KEK -ContentFilePath KEK.bin -SignatureOwner 77fa9abd-0359-4d32-bd60-28f4e78f784b -FormatWithCert -CertificateFilePath MicCorKEKCA2011-2011-06-24.der,microsoft-corporation-kek-2k-ca-2023.der
+
+Format-SecureBootUEFI -Name PK  -ContentFilePath PK.bin  -SignatureOwner 77fa9abd-0359-4d32-bd60-28f4e78f784b -FormatWithCert -CertificateFilePath windows-oem-devices-pk.der
+
+.\InstallSecureBootKeys.ps1 C:\secure-boot
+
+Set-ExecutionPolicy -ExecutionPolicy $execPolicy -Scope Process
 ```
