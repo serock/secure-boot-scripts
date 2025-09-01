@@ -157,15 +157,13 @@ Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=2239872" -OutFil
 Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=2255361" -OutFile windows-oem-devices-pk.der
 Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=2284009" -OutFile microsoft-option-rom-uefi-ca-2023.der
 
-Format-SecureBootUEFI -Name DBX -ContentFilePath DBX.bin -SignatureOwner 00000000-0000-0000-0000-000000000000 -Hash 0000000000000000000000000000000000000000000000000000000000000000 -Algorithm SHA256
-
-Format-SecureBootUEFI -Name DB  -ContentFilePath DB.bin  -SignatureOwner 77fa9abd-0359-4d32-bd60-28f4e78f784b -FormatWithCert -CertificateFilePath windows-uefi-ca-2023.der,microsoft-uefi-ca-2023.der,microsoft-option-rom-uefi-ca-2023.der
-
+Format-SecureBootUEFI -Name dbx -ContentFilePath DBX.bin -SignatureOwner 00000000-0000-0000-0000-000000000000 -Hash 0000000000000000000000000000000000000000000000000000000000000000 -Algorithm SHA256
+Format-SecureBootUEFI -Name db  -ContentFilePath DB.bin  -SignatureOwner 77fa9abd-0359-4d32-bd60-28f4e78f784b -FormatWithCert -CertificateFilePath windows-uefi-ca-2023.der,microsoft-uefi-ca-2023.der,microsoft-option-rom-uefi-ca-2023.der
 Format-SecureBootUEFI -Name KEK -ContentFilePath KEK.bin -SignatureOwner 77fa9abd-0359-4d32-bd60-28f4e78f784b -FormatWithCert -CertificateFilePath MicCorKEKCA2011-2011-06-24.der,microsoft-corporation-kek-2k-ca-2023.der
-
 Format-SecureBootUEFI -Name PK  -ContentFilePath PK.bin  -SignatureOwner 77fa9abd-0359-4d32-bd60-28f4e78f784b -FormatWithCert -CertificateFilePath windows-oem-devices-pk.der
 
 .\InstallSecureBootKeys.ps1 C:\secure-boot
 
 Set-ExecutionPolicy -ExecutionPolicy $execPolicy -Scope Process
+
 ```
