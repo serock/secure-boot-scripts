@@ -1,3 +1,5 @@
+#Requires -RunAsAdministrator
+
 New-Variable -Name EFI_CERT_X509_GUID -Value ([Guid] "a5c059a1-94e4-4aa7-87b5-ab155c2bf072") -Option Constant
 New-Variable -Name MICROSOFT_KEK_2023_CERT_NAME -Value "Microsoft Corporation KEK 2K CA 2023" -Option Constant
 
