@@ -1,12 +1,14 @@
-# Example: Dell Inspiron 3847 / Windows 10
+# Example: Dell Inspiron 3847 / Windows 10 Home edition
 
 ## Initial Secure Boot Changes
 
-The secure boot configuration was updated by following Microsoft's [Mitigation deployment guidelines](https://support.microsoft.com/en-us/topic/how-to-manage-the-windows-boot-manager-revocations-for-secure-boot-changes-associated-with-cve-2023-24932-41a975df-beb2-40c1-99a3-b3ff139f832d#bkmk_mitigation_guidelines) for CVE-2023-24932. Afterwards, the secure boot configuration had the following certificates.
+I updated the secure boot configuration by following Microsoft's [Mitigation deployment guidelines](https://support.microsoft.com/en-us/topic/how-to-manage-the-windows-boot-manager-revocations-for-secure-boot-changes-associated-with-cve-2023-24932-41a975df-beb2-40c1-99a3-b3ff139f832d#bkmk_mitigation_guidelines) for CVE-2023-24932.
+
+Afterwards, the secure boot configuration had the following certificates.
 
 ### PK certificate
 
-The `PK` certificate, which should not have been used and has expired, was not changed by following the *Mitigation deployment guidelines* mentioned above.
+The PK certificate, which clearly should not have been shipped by Dell and expired in 2018, was not changed by following the *Mitigation deployment guidelines* mentioned above.
 
 ```
 Version: 3 (0x2)
@@ -22,7 +24,7 @@ Subject: CN = DO NOT SHIP - PK
 
 ### KEK certificate
 
-The one `KEK` certificate was not changed by following the *Mitigation deployment guidelines*.
+The one KEK certificate was not changed by following the *Mitigation deployment guidelines*.
 
 ```
 Version: 3 (0x2)
@@ -38,7 +40,7 @@ Subject: C = US, ST = Washington, L = Redmond, O = Microsoft Corporation, CN = M
 
 ### Certificates in db
 
-Of the three certificates in `db`, only the **Windows UEFI CA 2023** certificate was added by following the *Mitigation deployment guidelines*; the other two certificates were not changed.
+Of the three certificates in db, only the **Windows UEFI CA 2023** certificate was added by following the *Mitigation deployment guidelines*; the other two certificates were not changed.
 
 ```
 [1]:
@@ -80,8 +82,8 @@ Subject: C = US, O = Microsoft Corporation, CN = Windows UEFI CA 2023
 
 ### Certificates in dbx
 
-The only certificate in `dbx`, **Microsoft Windows Production PCA 2011**, was added by following the *Mitigation deployment guidelines*.
-This certificate was also in `db`.
+The only certificate in dbx, **Microsoft Windows Production PCA 2011**, was added by following the *Mitigation deployment guidelines*.
+This certificate was also in db.
 
 ```
 Version: 3 (0x2)
@@ -136,17 +138,26 @@ With the certificate expiring in June 2026, I decided to add the newer **Microso
 
 ### Updating Certificates in db
 
+TODO: add documentation
+
 ## Applying the Other Secure Boot Certificate Changes
 
+Dell has not made available a download of Microsoft's **Windows OEM Devices PK** certificate that is signed with the private key for the default PK.
+To enroll a PK that is not signed (i.e., not authenticated), the Secure Boot mode needs to be changed to Setup Mode.
+Changing to Setup Mode is accomplished by entering the BIOS Setup utility and clearing the Secure Boot keys:
+
+1. Reboot
+2. Press the F2 key repeatedly before the Dell logo appears until the BIOS Setup utility appears.
+3. Under the **Boot** tab, select **Clear Secure Boot Keys**.
+4. Press the F10 key to save and exit.
+
+TODO: add documentation
+
 ```
-$execPolicy = Get-ExecutionPolicy -Scope Process
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
+if (-not (Test-Path -Path C:\secure-boot)) {New-Item -Path C:\secure-boot -ItemType Directory}
+Set-Location -Path C:\secure-boot
 
-New-Item -Path C:\ -Name secure-boot -ItemType Directory
-Set-Location -Path C:\secure-boot\
-
-Invoke-WebRequest -Uri "https://github.com/microsoft/secureboot_objects/raw/main/scripts/windows/InstallSecureBootKeys.ps1" -OutFile InstallSecureBootKeys.ps1
-Unblock-File -LiteralPath C:\secure-boot\InstallSecureBootKeys.ps1 -Confirm
+Invoke-WebRequest -Uri "https://github.com/microsoft/secureboot_objects/raw/de64d810737a6713eed4857af1548db5b99c6f0e/scripts/windows/InstallSecureBootKeys.ps1" -OutFile InstallSecureBootKeys.ps1
 
 Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=321185"  -OutFile MicCorKEKCA2011-2011-06-24.der
 Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=321192"  -OutFile MicWinProPCA2011-2011-10-19.der
@@ -162,8 +173,13 @@ Format-SecureBootUEFI -Name db  -ContentFilePath DB.bin  -SignatureOwner 77fa9ab
 Format-SecureBootUEFI -Name KEK -ContentFilePath KEK.bin -SignatureOwner 77fa9abd-0359-4d32-bd60-28f4e78f784b -FormatWithCert -CertificateFilePath MicCorKEKCA2011-2011-06-24.der,microsoft-corporation-kek-2k-ca-2023.der
 Format-SecureBootUEFI -Name PK  -ContentFilePath PK.bin  -SignatureOwner 77fa9abd-0359-4d32-bd60-28f4e78f784b -FormatWithCert -CertificateFilePath windows-oem-devices-pk.der
 
-.\InstallSecureBootKeys.ps1 C:\secure-boot
+```
 
-Set-ExecutionPolicy -ExecutionPolicy $execPolicy -Scope Process
+TODO: add documentation
+
+```
+if ((Get-ExecutionPolicy) -eq "Restricted") {Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process}
+
+.\InstallSecureBootKeys.ps1 C:\secure-boot
 
 ```
