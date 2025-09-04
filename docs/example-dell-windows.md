@@ -4,7 +4,23 @@
 
 I updated the secure boot configuration by following Microsoft's [Mitigation deployment guidelines](https://support.microsoft.com/en-us/topic/how-to-manage-the-windows-boot-manager-revocations-for-secure-boot-changes-associated-with-cve-2023-24932-41a975df-beb2-40c1-99a3-b3ff139f832d#bkmk_mitigation_guidelines) for CVE-2023-24932.
 
-Afterwards, the secure boot configuration had the following certificates.
+Using PowerShell running as Administrator, I saved the secure boot certificates.
+
+```powershell
+if (-not (Test-Path -Path C:\secure-boot\backup)) {New-Item -Path C:\secure-boot\backup -ItemType Directory}
+Set-Location -Path C:\secure-boot\backup
+
+Invoke-WebRequest -Uri "https://github.com/serock/secure-boot-scripts/raw/8d0a8c58d17e554cb1ca0f9cfe4987a026308a7a/powershell/save-pk-cert.ps1"   -OutFile save-pk-cert.ps1
+Invoke-WebRequest -Uri "https://github.com/serock/secure-boot-scripts/raw/0bb051e1e06887d6aa84123b0ceeae15e831f037/powershell/save-kek-certs.ps1" -OutFile save-kek-certs.ps1
+
+Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process
+
+.\save-pk-cert.ps1
+.\save-kek-certs.ps1
+
+```
+
+The following secure boot certificates were saved.
 
 ### PK certificate
 
@@ -153,11 +169,10 @@ Changing to Setup Mode is accomplished by entering the BIOS Setup utility and cl
 
 TODO: add documentation
 
-```
-if (-not (Test-Path -Path C:\secure-boot)) {New-Item -Path C:\secure-boot -ItemType Directory}
+```powershell
 Set-Location -Path C:\secure-boot
 
-Invoke-WebRequest -Uri "https://github.com/microsoft/secureboot_objects/raw/de64d810737a6713eed4857af1548db5b99c6f0e/scripts/windows/InstallSecureBootKeys.ps1" -OutFile InstallSecureBootKeys.ps1
+Invoke-WebRequest -Uri "https://github.com/microsoft/secureboot_objects/raw/b28f4bb39ad9567b183fb59d8cdc051df7d24472/scripts/windows/InstallSecureBootKeys.ps1" -OutFile InstallSecureBootKeys.ps1
 
 Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=321185"  -OutFile MicCorKEKCA2011-2011-06-24.der
 Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=321192"  -OutFile MicWinProPCA2011-2011-10-19.der
@@ -178,8 +193,6 @@ Format-SecureBootUEFI -Name PK  -ContentFilePath PK.bin  -SignatureOwner 77fa9ab
 TODO: add documentation
 
 ```
-if ((Get-ExecutionPolicy) -eq "Restricted") {Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process}
-
 .\InstallSecureBootKeys.ps1 C:\secure-boot
 
 ```
