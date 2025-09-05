@@ -9,18 +9,17 @@ I updated the secure boot configuration by following Microsoft's [Mitigation dep
 Running PowerShell as Administrator, I saved the secure boot certificates.
 
 ```powershell
-if (-not (Test-Path -Path 'C:\secure-boot\backup')) {New-Item -Path 'C:\secure-boot\backup' -ItemType Directory}
+if (-not (Test-Path -Path 'C:\secure-boot\backup')) { New-Item -Path 'C:\secure-boot\backup' -ItemType Directory }
 Set-Location -Path 'C:\secure-boot\backup'
 
-Invoke-WebRequest -Uri 'https://github.com/serock/secure-boot-scripts/raw/60aa92bb122a6c40bf5e7b89a20f3c5f89bcd491/powershell/Save-PKCert.ps1'   -OutFile 'Save-PKCert.ps1'
-Invoke-WebRequest -Uri 'https://github.com/serock/secure-boot-scripts/raw/60aa92bb122a6c40bf5e7b89a20f3c5f89bcd491/powershell/Save-KEKCerts.ps1' -OutFile 'Save-KEKCerts.ps1'
+Invoke-WebRequest -Uri 'https://github.com/serock/secure-boot-scripts/raw/17acc29bf7ce479598473213472746fc99603f7a/powershell/Save-PKCert.ps1'   -OutFile 'Save-PKCert.ps1'
+Invoke-WebRequest -Uri 'https://github.com/serock/secure-boot-scripts/raw/17acc29bf7ce479598473213472746fc99603f7a/powershell/Save-KEKCerts.ps1' -OutFile 'Save-KEKCerts.ps1'
 
-if ((Get-ExecutionPolicy) -in 'AllSigned','Restricted') {Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process}
-
-if ((Get-ExecutionPolicy) -eq 'RemoteSigned') {Unblock-File -Path '.\Save-PKCert.ps1','.\Save-KEKCerts.ps1'}
+if ((Get-ExecutionPolicy) -in 'AllSigned','Restricted') { Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process }
 
 .\Save-PKCert.ps1
 .\Save-KEKCerts.ps1
+
 ```
 
 The following secure boot certificates were saved.
@@ -43,7 +42,7 @@ Subject: CN = DO NOT SHIP - PK
 
 ### KEK certificate
 
-The one KEK certificate was not changed by following the *Mitigation deployment guidelines*.
+The one and only KEK certificate was not changed by following the *Mitigation deployment guidelines*.
 
 ```
 Version: 3 (0x2)
@@ -190,13 +189,12 @@ Format-SecureBootUEFI -Name dbx -ContentFilePath 'DBX.bin' -SignatureOwner '0000
 Format-SecureBootUEFI -Name db  -ContentFilePath 'DB.bin'  -SignatureOwner '77fa9abd-0359-4d32-bd60-28f4e78f784b' -FormatWithCert -CertificateFilePath 'windows-uefi-ca-2023.der','microsoft-uefi-ca-2023.der','microsoft-option-rom-uefi-ca-2023.der'
 Format-SecureBootUEFI -Name KEK -ContentFilePath 'KEK.bin' -SignatureOwner '77fa9abd-0359-4d32-bd60-28f4e78f784b' -FormatWithCert -CertificateFilePath 'MicCorKEKCA2011-2011-06-24.der','microsoft-corporation-kek-2k-ca-2023.der'
 Format-SecureBootUEFI -Name PK  -ContentFilePath 'PK.bin'  -SignatureOwner '77fa9abd-0359-4d32-bd60-28f4e78f784b' -FormatWithCert -CertificateFilePath 'windows-oem-devices-pk.der'
+
 ```
 
 TODO: add documentation
 
 ```powershell
-if ((Get-ExecutionPolicy) -eq 'RemoteSigned') {Unblock-File -Path '.\InstallSecureBootKeys.ps1'}
-
 .\InstallSecureBootKeys.ps1 -PresignedObjectsPath 'C:\secure-boot'
 
 ```
