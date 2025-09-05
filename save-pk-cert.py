@@ -21,7 +21,7 @@ try:
             raise ValueError(f"Unsupported signature type: {efiSigList.signature_type}")
 
         cert_data = efi_sig_list.signature_data_list[0].signature_data
-        with open("PK0.cer", "wb") as f:
+        with open("PK0.der", "wb") as f:
             f.write(cert_data)
 
         cert = x509.load_der_x509_certificate(cert_data)
@@ -34,7 +34,7 @@ try:
         cert_expired = expiration_time < now
 
         style_subject_name = f"{Fore.RED}{Style.BRIGHT}" if bad_cert or cert_expired else f"{Fore.GREEN}{Style.BRIGHT}"
-        print(f"Saved the PK cert, {style_subject_name}{subject_name}{Style.RESET_ALL}, to PK0.cer")
+        print(f"Saved the PK cert, {style_subject_name}{subject_name}{Style.RESET_ALL}, to PK0.der")
 
         if bad_cert:
             print(f"  {Fore.RED}{Style.BRIGHT}This PK cert was issued with an untrusted key{Style.RESET_ALL}")

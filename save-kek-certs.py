@@ -24,7 +24,7 @@ try:
                 raise ValueError(f"Unsupported signature type: {efiSigList.signature_type}")
 
             cert_data = esl.signature_data_list[0].signature_data
-            with open(f"KEK{i}.cer", "wb") as f:
+            with open(f"KEK{i}.der", "wb") as f:
                 f.write(cert_data)
 
             cert = x509.load_der_x509_certificate(cert_data)
@@ -38,7 +38,7 @@ try:
             cert_expired = expiration_time < now
 
             style_subject_name = f"{Fore.RED}{Style.BRIGHT}" if cert_expired else f"{Fore.GREEN}{Style.BRIGHT}"
-            print(f"Saved the KEK cert, {style_subject_name}{subject_name}{Style.RESET_ALL}, to KEK{i}.cer")
+            print(f"Saved the KEK cert, {style_subject_name}{subject_name}{Style.RESET_ALL}, to KEK{i}.der")
 
             if time_delta.days < 60:
                 style_expiration = f"{Fore.RED}{Style.BRIGHT}"
