@@ -194,7 +194,7 @@ Format-SecureBootUEFI -Name PK  -ContentFilePath PK.bin  -SignatureOwner '77fa9a
 
 TODO: add documentation
 
-```
+```powershell
 if ((Get-ExecutionPolicy) -eq RemoteSigned) {Unblock-File -Path '.\InstallSecureBootKeys.ps1'}
 
 .\InstallSecureBootKeys.ps1 -PresignedObjectsPath 'C:\secure-boot'
