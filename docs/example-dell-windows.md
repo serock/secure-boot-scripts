@@ -7,16 +7,16 @@ I updated the secure boot configuration by following Microsoft's [Mitigation dep
 Using PowerShell running as Administrator, I saved the secure boot certificates.
 
 ```powershell
-if (-not (Test-Path -Path C:\secure-boot\backup)) {New-Item -Path C:\secure-boot\backup -ItemType Directory}
-Set-Location -Path C:\secure-boot\backup
+if (-not (Test-Path -Path 'C:\secure-boot\backup')) {New-Item -Path 'C:\secure-boot\backup' -ItemType Directory}
+Set-Location -Path 'C:\secure-boot\backup'
 
-Invoke-WebRequest -Uri "https://github.com/serock/secure-boot-scripts/raw/8d0a8c58d17e554cb1ca0f9cfe4987a026308a7a/powershell/save-pk-cert.ps1"   -OutFile save-pk-cert.ps1
-Invoke-WebRequest -Uri "https://github.com/serock/secure-boot-scripts/raw/0bb051e1e06887d6aa84123b0ceeae15e831f037/powershell/save-kek-certs.ps1" -OutFile save-kek-certs.ps1
+Invoke-WebRequest -Uri 'https://github.com/serock/secure-boot-scripts/raw/60aa92bb122a6c40bf5e7b89a20f3c5f89bcd491/powershell/Save-PKCert.ps1'   -OutFile 'Save-PKCert.ps1'
+Invoke-WebRequest -Uri 'https://github.com/serock/secure-boot-scripts/raw/60aa92bb122a6c40bf5e7b89a20f3c5f89bcd491/powershell/Save-KEKCerts.ps1' -OutFile 'Save-KEKCerts.ps1'
 
 Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process
 
-.\save-pk-cert.ps1
-.\save-kek-certs.ps1
+.\Save-PKCert.ps1
+.\Save-KEKCerts.ps1
 
 ```
 
@@ -170,23 +170,23 @@ Changing to Setup Mode is accomplished by entering the BIOS Setup utility and cl
 TODO: add documentation
 
 ```powershell
-Set-Location -Path C:\secure-boot
+Set-Location -Path 'C:\secure-boot'
 
-Invoke-WebRequest -Uri "https://github.com/microsoft/secureboot_objects/raw/b28f4bb39ad9567b183fb59d8cdc051df7d24472/scripts/windows/InstallSecureBootKeys.ps1" -OutFile InstallSecureBootKeys.ps1
+Invoke-WebRequest -Uri 'https://github.com/microsoft/secureboot_objects/raw/b28f4bb39ad9567b183fb59d8cdc051df7d24472/scripts/windows/InstallSecureBootKeys.ps1' -OutFile 'InstallSecureBootKeys.ps1'
 
-Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=321185"  -OutFile MicCorKEKCA2011-2011-06-24.der
-Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=321192"  -OutFile MicWinProPCA2011-2011-10-19.der
-Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=321194"  -OutFile MicCorUEFCA2011-2011-06-27.der
-Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=2239775" -OutFile microsoft-corporation-kek-2k-ca-2023.der
-Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=2239776" -OutFile windows-uefi-ca-2023.der
-Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=2239872" -OutFile microsoft-uefi-ca-2023.der
-Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=2255361" -OutFile windows-oem-devices-pk.der
-Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/?linkid=2284009" -OutFile microsoft-option-rom-uefi-ca-2023.der
+Invoke-WebRequest -Uri 'https://go.microsoft.com/fwlink/?linkid=321185'  -OutFile 'MicCorKEKCA2011-2011-06-24.der'
+Invoke-WebRequest -Uri 'https://go.microsoft.com/fwlink/?linkid=321192'  -OutFile 'MicWinProPCA2011-2011-10-19.der'
+Invoke-WebRequest -Uri 'https://go.microsoft.com/fwlink/?linkid=321194'  -OutFile 'MicCorUEFCA2011-2011-06-27.der'
+Invoke-WebRequest -Uri 'https://go.microsoft.com/fwlink/?linkid=2239775' -OutFile 'microsoft-corporation-kek-2k-ca-2023.der'
+Invoke-WebRequest -Uri 'https://go.microsoft.com/fwlink/?linkid=2239776' -OutFile 'windows-uefi-ca-2023.der'
+Invoke-WebRequest -Uri 'https://go.microsoft.com/fwlink/?linkid=2239872' -OutFile 'microsoft-uefi-ca-2023.der'
+Invoke-WebRequest -Uri 'https://go.microsoft.com/fwlink/?linkid=2255361' -OutFile 'windows-oem-devices-pk.der'
+Invoke-WebRequest -Uri 'https://go.microsoft.com/fwlink/?linkid=2284009' -OutFile 'microsoft-option-rom-uefi-ca-2023.der'
 
-Format-SecureBootUEFI -Name dbx -ContentFilePath DBX.bin -SignatureOwner 00000000-0000-0000-0000-000000000000 -Hash 0000000000000000000000000000000000000000000000000000000000000000 -Algorithm SHA256
-Format-SecureBootUEFI -Name db  -ContentFilePath DB.bin  -SignatureOwner 77fa9abd-0359-4d32-bd60-28f4e78f784b -FormatWithCert -CertificateFilePath windows-uefi-ca-2023.der,microsoft-uefi-ca-2023.der,microsoft-option-rom-uefi-ca-2023.der
-Format-SecureBootUEFI -Name KEK -ContentFilePath KEK.bin -SignatureOwner 77fa9abd-0359-4d32-bd60-28f4e78f784b -FormatWithCert -CertificateFilePath MicCorKEKCA2011-2011-06-24.der,microsoft-corporation-kek-2k-ca-2023.der
-Format-SecureBootUEFI -Name PK  -ContentFilePath PK.bin  -SignatureOwner 77fa9abd-0359-4d32-bd60-28f4e78f784b -FormatWithCert -CertificateFilePath windows-oem-devices-pk.der
+Format-SecureBootUEFI -Name dbx -ContentFilePath DBX.bin -SignatureOwner '00000000-0000-0000-0000-000000000000' -Hash '0000000000000000000000000000000000000000000000000000000000000000' -Algorithm SHA256
+Format-SecureBootUEFI -Name db  -ContentFilePath DB.bin  -SignatureOwner '77fa9abd-0359-4d32-bd60-28f4e78f784b' -FormatWithCert -CertificateFilePath 'windows-uefi-ca-2023.der','microsoft-uefi-ca-2023.der','microsoft-option-rom-uefi-ca-2023.der'
+Format-SecureBootUEFI -Name KEK -ContentFilePath KEK.bin -SignatureOwner '77fa9abd-0359-4d32-bd60-28f4e78f784b' -FormatWithCert -CertificateFilePath 'MicCorKEKCA2011-2011-06-24.der','microsoft-corporation-kek-2k-ca-2023.der'
+Format-SecureBootUEFI -Name PK  -ContentFilePath PK.bin  -SignatureOwner '77fa9abd-0359-4d32-bd60-28f4e78f784b' -FormatWithCert -CertificateFilePath 'windows-oem-devices-pk.der'
 
 ```
 
