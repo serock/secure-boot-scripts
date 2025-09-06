@@ -21,7 +21,7 @@ try:
         i = 0
         for esl in efi_sig_db.esl_list:
             if esl.signature_type != EfiSignatureDataFactory.EFI_CERT_X509_GUID:
-                raise ValueError(f"Unsupported signature type: {efiSigList.signature_type}")
+                raise ValueError(f"Unsupported signature type: {esl.signature_type}")
 
             cert_data = esl.signature_data_list[0].signature_data
             with open(f"KEK{i}.der", "wb") as f:
