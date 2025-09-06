@@ -7,7 +7,7 @@ Save each UEFI Key Exchange Key (KEK) certificate to a separate file in the curr
 
 .DESCRIPTION
 
-Save each DER-encoded KEK certificate as .\KEK0.der, .\KEK1.der, .\KEK2.der, ..., etc.
+Save each DER-encoded KEK certificate as .\db{i}.der, where {i} is 0, 1, 2, ..., etc.
 
 .INPUTS
 
