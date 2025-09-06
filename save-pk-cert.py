@@ -16,11 +16,11 @@ try:
 
     with BytesIO(uefi_var[1]) as buffer:
         efi_sig_db = EfiSignatureDatabase(buffer)
-        efi_sig_list = efi_sig_db.esl_list[0];
-        if efi_sig_list.signature_type != EfiSignatureDataFactory.EFI_CERT_X509_GUID:
-            raise ValueError(f"Unsupported signature type: {efiSigList.signature_type}")
+        esl = efi_sig_db.esl_list[0];
+        if esl.signature_type != EfiSignatureDataFactory.EFI_CERT_X509_GUID:
+            raise ValueError(f"Unsupported signature type: {esl.signature_type}")
 
-        cert_data = efi_sig_list.signature_data_list[0].signature_data
+        cert_data = esl.signature_data_list[0].signature_data
         with open("PK0.der", "wb") as f:
             f.write(cert_data)
 
@@ -52,7 +52,7 @@ try:
         else:
             print(f"  This PK cert will expire on {style_expiration}{expiration_time.date()}{Style.RESET_ALL}")
 
-        print(f"  The signature owner is {efi_sig_list.signature_data_list[0].signature_owner}")
+        print(f"  The signature owner is {esl.signature_data_list[0].signature_owner}")
 
         should_replace_cert = bad_cert or time_delta.days < 60
 
