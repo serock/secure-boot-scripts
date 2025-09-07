@@ -1,3 +1,6 @@
+---
+---
+
 # Example: Dell Inspiron 3847 / Windows 10 Home edition
 
 ## Initial Secure Boot Changes
@@ -12,13 +15,15 @@ Running PowerShell as Administrator, I saved the secure boot certificates.
 if (-not (Test-Path -Path 'C:\secure-boot\backup')) { New-Item -Path 'C:\secure-boot\backup' -ItemType Directory }
 Set-Location -Path 'C:\secure-boot\backup'
 
-Invoke-WebRequest -Uri 'https://github.com/serock/secure-boot-scripts/raw/17acc29bf7ce479598473213472746fc99603f7a/powershell/Save-PKCert.ps1'   -OutFile 'Save-PKCert.ps1'
-Invoke-WebRequest -Uri 'https://github.com/serock/secure-boot-scripts/raw/17acc29bf7ce479598473213472746fc99603f7a/powershell/Save-KEKCerts.ps1' -OutFile 'Save-KEKCerts.ps1'
+Invoke-WebRequest -Uri '{{ site.github.repository_url }}/raw/139d69a3b7823c0c8a6a01213515dd4776c7399b/powershell/Save-PKCert.ps1'           -OutFile 'Save-PKCert.ps1'
+Invoke-WebRequest -Uri '{{ site.github.repository_url }}/raw/139d69a3b7823c0c8a6a01213515dd4776c7399b/powershell/Save-KEKCerts.ps1'         -OutFile 'Save-KEKCerts.ps1'
+Invoke-WebRequest -Uri '{{ site.github.repository_url }}/raw/0129a39ddb8632a44c8e090c98348a6f62bc1032/powershell/Save-DbCertsAndHashes.ps1' -OutFile 'Save-DbCertsAndHashes.ps1'
 
 if ((Get-ExecutionPolicy) -in 'AllSigned','Restricted') { Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process }
 
 .\Save-PKCert.ps1
 .\Save-KEKCerts.ps1
+.\Save-DbCertsAndHashes.ps1
 
 ```
 
