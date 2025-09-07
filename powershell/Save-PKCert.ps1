@@ -81,7 +81,7 @@ if ($signatureListSize - $signatureSize -ne 28) {
 }
 $signatureOwner = [Guid] [Byte[]] $efiSignatureList[28 .. 43]
 $signatureData = [Byte[]] $efiSignatureList[44 .. ($signatureListSize - 1)]
-$filePath = "$($PWD.Path)\PK0.der"
+$filePath = Join-Path -Path "$($PWD.Path)" -ChildPath 'PK0.der'
 [System.IO.File]::WriteAllBytes($filePath, $signatureData)
 $certificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($signatureData)
 $subjectName = Get-CommonName -DN $certificate.Subject

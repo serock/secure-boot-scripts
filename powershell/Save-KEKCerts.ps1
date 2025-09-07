@@ -26,6 +26,7 @@ Saved the KEK cert, Microsoft Corporation KEK CA 2011, to KEK0.der
 Saved the KEK cert, HP UEFI Secure Boot 2013 KEK key, to KEK1.der
   This KEK cert will expire on 2033-08-23
   The signature owner is f5a96b31-dba0-4faa-a42a-7a0c9832768e
+Consider adding the Microsoft Corporation KEK 2K CA 2023 cert
 #>
 
 New-Variable -Name EFI_CERT_X509_GUID -Value ([Guid] 'a5c059a1-94e4-4aa7-87b5-ab155c2bf072') -Option Constant
@@ -80,7 +81,7 @@ while ($byteIndex -lt $signatureDatabase.Length - 1) {
         throw "Unsupported signature type: $signatureType"
     }
     $signatureListSize = ToUInt32 -ByteArray ([Byte[]] $signatureDatabase[($byteIndex + 16) .. ($byteIndex + 19)])
-    # Signature Database should have at least one EFI Signature List
+    # EFI Signature List should fit within Signature Database
     if ($byteIndex + $signatureListSize -gt $signatureDatabase.Length) {
         throw 'Invalid EFI signature list size'
     }
@@ -96,7 +97,7 @@ while ($byteIndex -lt $signatureDatabase.Length - 1) {
     }
     $signatureOwner = [Guid] [Byte[]] $signatureDatabase[($byteIndex + 28) .. ($byteIndex + 43)]
     $signatureData = [Byte[]] $signatureDatabase[($byteIndex + 44) .. ($byteIndex + $signatureListSize - 1)]
-    $filePath = "$($PWD.Path)\KEK$kekIndex.der"
+    $filePath = Join-Path -Path "$($PWD.Path)" -ChildPath "KEK$kekIndex.der"
     [System.IO.File]::WriteAllBytes($filePath, $signatureData)
     
     $certificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($signatureData)
