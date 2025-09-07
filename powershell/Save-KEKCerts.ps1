@@ -9,9 +9,17 @@ Save each UEFI Key Exchange Key (KEK) certificate to a separate file in the curr
 
 Save each DER-encoded KEK certificate as .\db{i}.der, where {i} is 0, 1, 2, ..., etc.
 
+.PARAMETER Bytes
+
+The bytes of a KEK EFI Signature List.
+
 .INPUTS
 
-None
+Microsoft.SecureBoot.Commands.UEFIEnvironmentVariable
+
+.INPUTS
+
+Byte[]
 
 .OUTPUTS
 
@@ -19,7 +27,7 @@ None
 
 .EXAMPLE
 
-.\Save-KEKCerts.ps1
+Get-SecureBootUEFI -Name KEK | .\Save-KEKCerts.ps1
 Saved the KEK cert, Microsoft Corporation KEK CA 2011, to KEK0.der
   This KEK cert will expire on 2026-06-24
   The signature owner is 77fa9abd-0359-4d32-bd60-28f4e78f784b
@@ -27,14 +35,38 @@ Saved the KEK cert, HP UEFI Secure Boot 2013 KEK key, to KEK1.der
   This KEK cert will expire on 2033-08-23
   The signature owner is f5a96b31-dba0-4faa-a42a-7a0c9832768e
 Consider adding the Microsoft Corporation KEK 2K CA 2023 cert
+
+This example demonstrates how to use this script on Windows.
+
+.EXAMPLE
+
+efi-readvar -v KEK -o KEK.esl ; Get-Content -Path ./KEK.esl -AsByteStream -Raw | ./Save-KEKCerts.ps1
+Variable KEK, length 3573
+Saved the KEK cert, ASUSTeK MotherBoard KEK Certificate, to KEK0.der
+  This KEK cert will expire on 2031-12-26
+  The signature owner is 3b053091-6c9f-04cc-b1ac-e2a51e3be5f5
+Saved the KEK cert, Microsoft Corporation KEK CA 2011, to KEK1.der
+  This KEK cert will expire on 2026-06-24
+  The signature owner is 77fa9abd-0359-4d32-bd60-28f4e78f784b
+Saved the KEK cert, Canonical Ltd. Master Certificate Authority, to KEK2.der
+  This KEK cert will expire on 2042-04-11
+  The signature owner is 6dc40ae4-2ee8-9c4c-a314-0fc7b2008710
+Consider adding the Microsoft Corporation KEK 2K CA 2023 cert
+
+This example demonstrates how to use this script on Linux with PowerShell 7.
 #>
+
+param (
+    [Parameter(Mandatory, Position=0, ValueFromPipeline, ValueFromPipelineByPropertyName)]
+    [Byte[]]$Bytes
+)
 
 New-Variable -Name EFI_CERT_X509_GUID -Value ([Guid] 'a5c059a1-94e4-4aa7-87b5-ab155c2bf072') -Option Constant
 New-Variable -Name MICROSOFT_KEK_2023_CERT_NAME -Value 'Microsoft Corporation KEK 2K CA 2023' -Option Constant
 
 function ToUInt32 {
     param (
-        [Parameter(Mandatory=$true, Position=0)]
+        [Parameter(Mandatory, Position=0)]
         [ValidateCount(4, 4)]
         [Byte[]]$ByteArray
     )
@@ -49,7 +81,7 @@ function ToUInt32 {
 }
 function Get-CommonName {
     param(
-        [Parameter(Mandatory=$true, Position=0)]
+        [Parameter(Mandatory, Position=0)]
         [String]$DN
     )
     $dnParts = ($DN -split ',')
@@ -63,7 +95,7 @@ function Get-CommonName {
     }
     throw 'Failed to get Common Name'
 }
-$signatureDatabase = (Get-SecureBootUEFI -Name KEK).Bytes
+$signatureDatabase = $Bytes
 # Signature Database should have at least one EFI Signature List
 if ($signatureDatabase.Length -lt 28) {
     throw 'Signature database does not have at least one EFI Signature List'

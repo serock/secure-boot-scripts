@@ -9,9 +9,17 @@ Save the UEFI Platform Key (PK) certificate to a file in the current location.
 
 Save the DER-encoded PK certificate as .\PK0.der.
 
+.PARAMETER Bytes
+
+The bytes of a PK EFI Signature List.
+
 .INPUTS
 
-None
+Microsoft.SecureBoot.Commands.UEFIEnvironmentVariable
+
+.INPUTS
+
+Byte[]
 
 .OUTPUTS
 
@@ -19,16 +27,33 @@ None
 
 .EXAMPLE
 
-.\Save-PKCert.ps1
+Get-SecureBootUEFI -Name PK | .\Save-PKCert.ps1
 Saved the PK cert, HP UEFI Secure Boot 2013 PK Key, to PK0.der
   This PK cert will expire on 2033-08-23
   The signature owner is f5a96b31-dba0-4faa-a42a-7a0c9832768e
+
+This example demonstrates how to use this script on Windows.
+
+.EXAMPLE
+
+efi-readvar -v PK -o PK.esl ; Get-Content -Path ./PK.esl -AsByteStream -Raw | ./Save-PKCert.ps1
+Variable PK, length 886
+Saved the PK cert, ASUSTeK MotherBoard PK Certificate, to PK0.der
+  This PK cert will expire on 2031-12-26
+  The signature owner is 3b053091-6c9f-04cc-b1ac-e2a51e3be5f5
+
+This example demonstrates how to use this script on Linux with PowerShell 7.
 #>
+
+param (
+    [Parameter(Mandatory, Position=0, ValueFromPipeline, ValueFromPipelineByPropertyName)]
+    [Byte[]]$Bytes
+)
 
 New-Variable -Name EFI_CERT_X509_GUID -Value ([Guid] 'a5c059a1-94e4-4aa7-87b5-ab155c2bf072') -Option Constant
 function ToUInt32 {
     param (
-        [Parameter(Mandatory=$true, Position=0)]
+        [Parameter(Mandatory, Position=0)]
         [ValidateCount(4, 4)]
         [Byte[]]$ByteArray
     )
@@ -43,7 +68,7 @@ function ToUInt32 {
 }
 function Get-CommonName {
     param(
-        [Parameter(Mandatory=$true, Position=0)]
+        [Parameter(Mandatory, Position=0)]
         [String]$DN
     )
     $dnParts = ($DN -split ',')
@@ -57,7 +82,7 @@ function Get-CommonName {
     }
     throw 'Failed to get Common Name'
 }
-$signatureDatabase = (Get-SecureBootUEFI -Name PK).Bytes
+$signatureDatabase = $Bytes
 $efiSignatureList = $signatureDatabase
 $signatureType = [Guid] [Byte[]] $efiSignatureList[0 .. 15]
 # SignatureType should be an EFI_CERT_X509_GUID
