@@ -19,7 +19,7 @@ Microsoft.SecureBoot.Commands.UEFIEnvironmentVariable
 
 .INPUTS
 
-Byte[]
+System.Byte[]
 
 .OUTPUTS
 
@@ -85,9 +85,9 @@ function ToUInt32 {
         [Byte[]]$ByteArray
     )
     if ([System.BitConverter]::IsLittleEndian) {
-        $result = [System.BitConverter]::ToUInt32([Byte[]] $ByteArray[0 .. 3], 0)
+        $result = [System.BitConverter]::ToUInt32($ByteArray, 0)
     } else {
-        $tempByteArray = [Byte[]] $ByteArray[0 .. 3]
+        $tempByteArray = $ByteArray + @()
         [Array]::Reverse($tempByteArray)
         $result = [System.BitConverter]::ToUInt32($tempByteArray, 0)
     }
@@ -191,12 +191,12 @@ while ($byteIndex -lt $signatureDatabase.Length - 1) {
             Write-Host "Saved the db hash, $dbHash, to db$dbIndex.hsh"
             $signatureOwner = [Guid] [Byte[]] $signatureDatabase[($byteIndex + 28 + $hashIndex * 48) .. ($byteIndex + 28 + $hashIndex * 48 + 15)]
             Write-Host "  The signature owner is $signatureOwner"
-            $hashIndex += 1
+            $hashIndex++
             $hashByteIndex += 32
         }
         [System.IO.File]::WriteAllBytes($filePath, $hashBytes)
     }
 
-    $dbIndex += 1
+    $dbIndex++
     $byteIndex += $signatureListSize
 }

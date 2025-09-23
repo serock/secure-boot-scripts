@@ -19,7 +19,7 @@ Microsoft.SecureBoot.Commands.UEFIEnvironmentVariable
 
 .INPUTS
 
-Byte[]
+System.Byte[]
 
 .OUTPUTS
 
@@ -47,22 +47,22 @@ This example demonstrates how to use this script on Linux with PowerShell 7.
 
 param (
     [Parameter(Mandatory, Position=0, ValueFromPipeline, ValueFromPipelineByPropertyName)]
-    [Byte[]]$Bytes
+    [byte[]]$Bytes
 )
 
-New-Variable -Name EFI_CERT_X509_GUID -Value ([Guid] 'a5c059a1-94e4-4aa7-87b5-ab155c2bf072') -Option Constant
+New-Variable -Name EFI_CERT_X509_GUID -Value ([guid] 'a5c059a1-94e4-4aa7-87b5-ab155c2bf072') -Option Constant
 function ToUInt32 {
     param (
         [Parameter(Mandatory, Position=0)]
         [ValidateCount(4, 4)]
-        [Byte[]]$ByteArray
+        [byte[]]$Bytes
     )
     if ([System.BitConverter]::IsLittleEndian) {
-        $result = [System.BitConverter]::ToUInt32([Byte[]] $ByteArray[0 .. 3], 0)
+        [uint32]$result = [System.BitConverter]::ToUInt32($Bytes, 0)
     } else {
-        $tempByteArray = [Byte[]] $ByteArray[0 .. 3]
+        $tempByteArray = $Bytes + @()
         [Array]::Reverse($tempByteArray)
-        $result = [System.BitConverter]::ToUInt32($tempByteArray, 0)
+        [uint32]$result = [System.BitConverter]::ToUInt32($tempByteArray, 0)
     }
     return $result
 }
@@ -82,40 +82,40 @@ function Get-CommonName {
     }
     throw 'Failed to get Common Name'
 }
-$signatureDatabase = $Bytes
-$efiSignatureList = $signatureDatabase
-$signatureType = [Guid] [Byte[]] $efiSignatureList[0 .. 15]
+[byte[]]$signatureDatabase = $Bytes
+[byte[]]$efiSignatureList = $signatureDatabase
+[guid]$signatureType = [byte[]]$efiSignatureList[0 .. 15]
 # SignatureType should be an EFI_CERT_X509_GUID
 if ($signatureType -ne $EFI_CERT_X509_GUID) {
     throw "Unsupported signature type: $signatureType"
 }
-$signatureListSize = ToUInt32 -ByteArray ([Byte[]] $efiSignatureList[16 .. 19])
+[uint32]$signatureListSize = ToUInt32 -Bytes $efiSignatureList[16 .. 19]
 # Signature Database should have one EFI Signature List
 if ($signatureDatabase.Length -ne $signatureListSize) {
     throw 'Signature database does not have one and only one EFI signature list'
 }
-$signatureHeaderSize = ToUInt32 -ByteArray ([Byte[]] $efiSignatureList[20 .. 23])
+[uint32]$signatureHeaderSize = ToUInt32 -Bytes $efiSignatureList[20 .. 23]
 # SignatureHeaderSize should be zero
 if ($signatureHeaderSize -ne 0) {
     throw 'Signature header size is not zero'
 }
-$signatureSize = ToUInt32 -ByteArray ([Byte[]] $efiSignatureList[24 .. 27])
+[uint32]$signatureSize = ToUInt32 -Bytes $efiSignatureList[24 .. 27]
 # EFI Signature list should have one signature
 if ($signatureListSize - $signatureSize -ne 28) {
     throw 'Signature list does not have one and only one signature'
 }
-$signatureOwner = [Guid] [Byte[]] $efiSignatureList[28 .. 43]
-$signatureData = [Byte[]] $efiSignatureList[44 .. ($signatureListSize - 1)]
-$filePath = Join-Path -Path "$($PWD.Path)" -ChildPath 'PK0.der'
+[guid]$signatureOwner = [byte[]]$efiSignatureList[28 .. 43]
+[byte[]]$signatureData = $efiSignatureList[44 .. ($signatureListSize - 1)]
+[string]$filePath = Join-Path -Path "$($PWD.Path)" -ChildPath 'PK0.der'
 [System.IO.File]::WriteAllBytes($filePath, $signatureData)
-$certificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($signatureData)
-$subjectName = Get-CommonName -DN $certificate.Subject
-$expirationTime = $certificate.NotAfter.ToUniversalTime()
-$now = [System.DateTime]::UtcNow
-$timeDelta = $expirationTime - $now
+[System.Security.Cryptography.X509Certificates.X509Certificate2]$certificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($signatureData)
+[string]$subjectName = Get-CommonName -DN $certificate.Subject
+[datetime]$expirationTime = $certificate.NotAfter.ToUniversalTime()
+[datetime]$now = [System.DateTime]::UtcNow
+[timespan]$timeDelta = $expirationTime - $now
 
-$badCert = $subjectName.Contains('DO NOT SHIP') -or $subjectName.Contains('DO NOT TRUST')
-$certExpired = $expirationTime -lt $now
+[bool]$badCert = $subjectName.Contains('DO NOT SHIP') -or $subjectName.Contains('DO NOT TRUST')
+[bool]$certExpired = $expirationTime -lt $now
 
 if ($badCert -or $certExpired) { $styleSubjectName = 'Red' }
 else { $styleSubjectName = 'Green' }
@@ -141,7 +141,7 @@ if ($certExpired) {
 }
 Write-Host "  The signature owner is $signatureOwner"
 
-$shouldReplaceCert = $bad_cert -or $timeDelta.TotalDays -lt 60
+[bool]$shouldReplaceCert = $bad_cert -or $timeDelta.TotalDays -lt 60
 
 if ($shouldReplaceCert) {
     Write-Host 'Consider replacing this cert with the ' -NoNewline -ForegroundColor DarkRed

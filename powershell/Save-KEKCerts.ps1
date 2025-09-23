@@ -19,7 +19,7 @@ Microsoft.SecureBoot.Commands.UEFIEnvironmentVariable
 
 .INPUTS
 
-Byte[]
+System.Byte[]
 
 .OUTPUTS
 
@@ -71,9 +71,9 @@ function ToUInt32 {
         [Byte[]]$ByteArray
     )
     if ([System.BitConverter]::IsLittleEndian) {
-        $result = [System.BitConverter]::ToUInt32([Byte[]] $ByteArray[0 .. 3], 0)
+        $result = [System.BitConverter]::ToUInt32($ByteArray, 0)
     } else {
-        $tempByteArray = [Byte[]] $ByteArray[0 .. 3]
+        $tempByteArray = $ByteArray + @()
         [Array]::Reverse($tempByteArray)
         $result = [System.BitConverter]::ToUInt32($tempByteArray, 0)
     }
@@ -162,7 +162,7 @@ while ($byteIndex -lt $signatureDatabase.Length - 1) {
     }
     Write-Host "  The signature owner is $signatureOwner"
 
-    $kekIndex += 1
+    $kekIndex++
     $byteIndex += $signatureListSize
 }
 
