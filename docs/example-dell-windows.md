@@ -66,7 +66,7 @@ Subject: C = US, ST = Washington, L = Redmond, O = Microsoft Corporation, CN = M
 
 Of the three certificates in db, only the **Windows UEFI CA 2023** certificate was added by following the *Mitigation deployment guidelines*; the other two certificates were not changed.
 
-[1]: **Microsoft Windows Production PCA 2011**
+\[1\]: **Microsoft Windows Production PCA 2011**
 
 ```
 Version: 3 (0x2)
@@ -80,7 +80,7 @@ Validity
 Subject: C = US, ST = Washington, L = Redmond, O = Microsoft Corporation, CN = Microsoft Windows Production PCA 2011
 ```
 
-[2]: **Microsoft Corporation UEFI CA 2011**
+\[2\]: **Microsoft Corporation UEFI CA 2011**
 
 ```
 Version: 3 (0x2)
@@ -94,7 +94,7 @@ Validity
 Subject: C = US, ST = Washington, L = Redmond, O = Microsoft Corporation, CN = Microsoft Corporation UEFI CA 2011
 ```
 
-[3]: **Windows UEFI CA 2023**
+\[3\]: **Windows UEFI CA 2023**
 
 ```
 Version: 3 (0x2)
@@ -171,7 +171,7 @@ Subject: C = US, O = Microsoft Corporation, CN = Microsoft Corporation KEK 2K CA
 The **Windows UEFI CA 2023** certificate is needed because the Windows Boot Manager is signed by the corresponding private key.
 Microsoft has made two other certificates available that do not expire until 2038:
 
-[1]: **Microsoft UEFI CA 2023**
+\[1\]: **Microsoft UEFI CA 2023**
 
 ```
 Version: 3 (0x2)
@@ -185,7 +185,7 @@ Validity
 Subject: C = US, O = Microsoft Corporation, CN = Microsoft UEFI CA 2023
 ```
 
-[2]: **Microsoft Option ROM UEFI CA 2023**
+\[2\]: **Microsoft Option ROM UEFI CA 2023**
 
 ```
 Version: 3 (0x2)
