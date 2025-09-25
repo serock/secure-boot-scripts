@@ -5,11 +5,12 @@
 
 ## Initial Secure Boot Changes
 
-I updated the secure boot configuration by following Microsoft's [Mitigation deployment guidelines](https://support.microsoft.com/en-us/topic/how-to-manage-the-windows-boot-manager-revocations-for-secure-boot-changes-associated-with-cve-2023-24932-41a975df-beb2-40c1-99a3-b3ff139f832d#bkmk_mitigation_guidelines) for CVE-2023-24932.
+Update the secure boot configuration by applying steps 1 and 2 of Microsoft's [Mitigation deployment guidelines](https://support.microsoft.com/en-us/topic/how-to-manage-the-windows-boot-manager-revocations-for-secure-boot-changes-associated-with-cve-2023-24932-41a975df-beb2-40c1-99a3-b3ff139f832d#bkmk_mitigation_guidelines) for CVE-2023-24932.
+Those steps add the **Windows UEFI CA 2023** certificate to the secure boot authorized signature database (DB) and update the Windows Boot Manager (`bootmgfw.efi`).
 
 ## Saving Secure Boot Certificates
 
-Running PowerShell as Administrator, I saved the secure boot certificates.
+Running PowerShell as Administrator, save the secure boot certificates.
 
 ```powershell
 if (-not (Test-Path -Path 'C:\secure-boot\backup')) { New-Item -Path 'C:\secure-boot\backup' -ItemType Directory }
@@ -27,11 +28,11 @@ Get-SecureBootUEFI -Name db  | .\Save-DbCertsAndHashes.ps1
 
 ```
 
-The following secure boot certificates were saved.
+The saved secure boot certificates are listed below.
 
 ### PK certificate
 
-The PK certificate, which clearly should not have been shipped by Dell and expired in 2018, was not changed by following the *Mitigation deployment guidelines* mentioned above.
+The Platform Key (PK) certificate, which clearly should not have been shipped by Dell and expired in 2018, was not changed by following the *Mitigation deployment guidelines* mentioned above.
 
 ```
 Version: 3 (0x2)
@@ -122,13 +123,13 @@ Subject: C = US, ST = Washington, L = Redmond, O = Microsoft Corporation, CN = M
 
 ## Planning Other Secure Boot Certificate Changes to be Applied Manually
 
-Other changes to the certificates were made to resolve various issues.
+To resolve various issues, other changes to the secure boot certificates are necessary.
 
 ### Replacing the PK Certificate
 
 The non-production PK certificate needed to be replaced with a production PK certificate.
-It was clear that Dell was never going to provide a replacement PK certificate for the Inspiron 3847.
-Although I could have created and managed my own private key and PK certificate, I decided instead to replace the old PK certificate with Microsoft's **Windows OEM Devices PK** certificate because doing that was less work for me.
+It is clear that Dell is never going to provide a replacement PK certificate for the Inspiron 3847.
+A simple solution is to replace the old PK certificate with Microsoft's **Windows OEM Devices PK** certificate.
 
 ```
 Version: 3 (0x2)
@@ -142,10 +143,12 @@ Validity
 Subject: C = US, ST = Washington, L = Redmond, O = Microsoft Corporation, CN = Windows OEM Devices PK
 ```
 
+Alternatively, it is possible to create and manage a private key and PK certificate, but doing that is more work and is not covered in this example.
+
 ### Adding a Newer KEK Certificate
 
-The **Microsoft Corporation KEK CA 2011** certificate was still needed because Microsoft used it when signing the June 2025 `dbx` update, which was the latest update available in August 2025.
-With the certificate expiring in June 2026, I decided to add the newer **Microsoft Corporation KEK 2K CA 2023** certificate:
+The **Microsoft Corporation KEK CA 2011** certificate was still needed in August 2025 because Microsoft used it when signing the June 2025 `dbx` update, which was the latest update available.
+Microsoft has made a **Microsoft Corporation KEK 2K CA 2023** certificate available, which does not expire until 2038:
 
 ```
         Version: 3 (0x2)
@@ -174,12 +177,13 @@ Changing to Setup Mode is accomplished by entering the BIOS Setup utility and cl
 3. Under the **Boot** tab, select **Clear Secure Boot Keys**.
 4. Press the F10 key to save and exit.
 
-TODO: add documentation
+All of the secure boot certificates can be downloaded from Microsoft.
+Microsoft has provided a PowerShell script, `InstallSecureBootKeys.ps1`, for installing secure boot certificates (or public keys).
+The PowerShell script expects a single directory that holds four secure boot objects / files: `PK.bin`, `KEK.bin`, `DB.bin`, and `DBX.bin`.
+Most of the secure boot objects can be created from the downloaded certificates by using PowerShell.
 
 ```powershell
 Set-Location -Path 'C:\secure-boot'
-
-Invoke-WebRequest -Uri 'https://github.com/microsoft/secureboot_objects/raw/b28f4bb39ad9567b183fb59d8cdc051df7d24472/scripts/windows/InstallSecureBootKeys.ps1' -OutFile 'InstallSecureBootKeys.ps1'
 
 Invoke-WebRequest -Uri 'https://go.microsoft.com/fwlink/?linkid=321185'  -OutFile 'MicCorKEKCA2011-2011-06-24.der'
 Invoke-WebRequest -Uri 'https://go.microsoft.com/fwlink/?linkid=321192'  -OutFile 'MicWinProPCA2011-2011-10-19.der'
@@ -195,11 +199,22 @@ Format-SecureBootUEFI -Name db  -ContentFilePath 'DB.bin'  -SignatureOwner '77fa
 Format-SecureBootUEFI -Name KEK -ContentFilePath 'KEK.bin' -SignatureOwner '77fa9abd-0359-4d32-bd60-28f4e78f784b' -FormatWithCert -CertificateFilePath 'MicCorKEKCA2011-2011-06-24.der','microsoft-corporation-kek-2k-ca-2023.der'
 Format-SecureBootUEFI -Name PK  -ContentFilePath 'PK.bin'  -SignatureOwner '77fa9abd-0359-4d32-bd60-28f4e78f784b' -FormatWithCert -CertificateFilePath 'windows-oem-devices-pk.der'
 
+Invoke-WebRequest -Uri 'https://github.com/microsoft/secureboot_objects/raw/b28f4bb39ad9567b183fb59d8cdc051df7d24472/scripts/windows/InstallSecureBootKeys.ps1' -OutFile 'InstallSecureBootKeys.ps1'
+
 ```
 
-TODO: add documentation
+After creating the `PK.bin`, `KEK.bin`, `DB.bin`, and `DBX.bin` objects and downloading Microsoft's installation script, install the objects by running the script:
 
 ```powershell
 .\InstallSecureBootKeys.ps1 -PresignedObjectsPath 'C:\secure-boot'
 
 ```
+
+After installing the secure boot objects, enable secure boot.
+
+1. Reboot
+2. Press the F2 key repeatedly before the Dell logo appears until the BIOS Setup utility appears.
+3. Under the **Boot** tab, set **Secure Boot Control** to **Enabled**.
+4. Press the F10 key to save and exit.
+
+Finally, apply the revocation and SVN update by applying steps 3 and 4 of Microsoft's *Mitigation deployment guidelines* mentioned above.
