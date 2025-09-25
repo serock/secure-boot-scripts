@@ -66,9 +66,9 @@ Subject: C = US, ST = Washington, L = Redmond, O = Microsoft Corporation, CN = M
 
 Of the three certificates in db, only the **Windows UEFI CA 2023** certificate was added by following the *Mitigation deployment guidelines*; the other two certificates were not changed.
 
-```
-[1]:
+[1]: **Microsoft Windows Production PCA 2011**
 
+```
 Version: 3 (0x2)
 Serial Number:
     61:07:76:56:00:00:00:00:00:08
@@ -78,9 +78,11 @@ Validity
     Not Before: Oct 19 18:41:42 2011 GMT
     Not After : Oct 19 18:51:42 2026 GMT
 Subject: C = US, ST = Washington, L = Redmond, O = Microsoft Corporation, CN = Microsoft Windows Production PCA 2011
+```
 
-[2]:
+[2]: **Microsoft Corporation UEFI CA 2011**
 
+```
 Version: 3 (0x2)
 Serial Number:
     61:08:d3:c4:00:00:00:00:00:04
@@ -90,9 +92,11 @@ Validity
     Not Before: Jun 27 21:22:45 2011 GMT
     Not After : Jun 27 21:32:45 2026 GMT
 Subject: C = US, ST = Washington, L = Redmond, O = Microsoft Corporation, CN = Microsoft Corporation UEFI CA 2011
+```
 
-[3]:
+[3]: **Windows UEFI CA 2023**
 
+```
 Version: 3 (0x2)
 Serial Number:
     33:00:00:00:1a:88:8b:98:00:56:22:84:c1:00:00:00:00:00:1a
@@ -148,27 +152,56 @@ Alternatively, it is possible to create and manage a private key and PK certific
 ### Adding a Newer KEK Certificate
 
 The **Microsoft Corporation KEK CA 2011** certificate was still needed in August 2025 because Microsoft used it when signing the June 2025 `dbx` update, which was the latest update available.
-Microsoft has made a **Microsoft Corporation KEK 2K CA 2023** certificate available, which does not expire until 2038:
+Microsoft has made a **Microsoft Corporation KEK 2K CA 2023** certificate available that does not expire until 2038:
 
 ```
-        Version: 3 (0x2)
-        Serial Number:
-            33:00:00:00:13:14:16:b8:61:6d:82:82:4b:00:00:00:00:00:13
-        Signature Algorithm: sha256WithRSAEncryption
-        Issuer: C = US, O = Microsoft Corporation, CN = Microsoft RSA Devices Root CA 2021
-        Validity
-            Not Before: Mar  2 20:21:35 2023 GMT
-            Not After : Mar  2 20:31:35 2038 GMT
-        Subject: C = US, O = Microsoft Corporation, CN = Microsoft Corporation KEK 2K CA 2023
+Version: 3 (0x2)
+Serial Number:
+    33:00:00:00:13:14:16:b8:61:6d:82:82:4b:00:00:00:00:00:13
+Signature Algorithm: sha256WithRSAEncryption
+Issuer: C = US, O = Microsoft Corporation, CN = Microsoft RSA Devices Root CA 2021
+Validity
+    Not Before: Mar  2 20:21:35 2023 GMT
+    Not After : Mar  2 20:31:35 2038 GMT
+Subject: C = US, O = Microsoft Corporation, CN = Microsoft Corporation KEK 2K CA 2023
 ```
 
 ### Updating Certificates in db
 
-TODO: add documentation
+The **Windows UEFI CA 2023** certificate is needed because the Windows Boot Manager is signed by the corresponding private key.
+Microsoft has made two other certificates available that do not expire until 2038:
+
+[1]: **Microsoft UEFI CA 2023**
+
+```
+Version: 3 (0x2)
+Serial Number:
+    33:00:00:00:16:36:bf:36:89:9f:15:75:cc:00:00:00:00:00:16
+Signature Algorithm: sha256WithRSAEncryption
+Issuer: C = US, O = Microsoft Corporation, CN = Microsoft RSA Devices Root CA 2021
+Validity
+    Not Before: Jun 13 19:21:47 2023 GMT
+    Not After : Jun 13 19:31:47 2038 GMT
+Subject: C = US, O = Microsoft Corporation, CN = Microsoft UEFI CA 2023
+```
+
+[2]: **Microsoft Option ROM UEFI CA 2023**
+
+```
+Version: 3 (0x2)
+Serial Number:
+    33:00:00:00:17:b3:ec:4d:8f:01:e2:70:05:00:00:00:00:00:17
+Signature Algorithm: sha256WithRSAEncryption
+Issuer: C = US, O = Microsoft Corporation, CN = Microsoft RSA Devices Root CA 2021
+Validity
+    Not Before: Oct 26 19:02:20 2023 GMT
+    Not After : Oct 26 19:12:20 2038 GMT
+Subject: C = US, O = Microsoft Corporation, CN = Microsoft Option ROM UEFI CA 2023
+```
 
 ## Applying the Other Secure Boot Certificate Changes
 
-Dell has not made available a download of Microsoft's **Windows OEM Devices PK** certificate that is signed with the private key for the default PK.
+Dell has not made available a download of Microsoft's **Windows OEM Devices PK** certificate that is signed with the private key for the current PK.
 To enroll a PK that is not signed (i.e., not authenticated), the Secure Boot mode needs to be changed to Setup Mode.
 Changing to Setup Mode is accomplished by entering the BIOS Setup utility and clearing the Secure Boot keys:
 
