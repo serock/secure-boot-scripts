@@ -72,90 +72,90 @@ This example demonstrates how to use this script on Linux with PowerShell 7.
 
 param (
     [Parameter(Mandatory, Position=0, ValueFromPipeline, ValueFromPipelineByPropertyName)]
-    [Byte[]]$Bytes
+    [byte[]]$Bytes
 )
 
-New-Variable -Name EFI_CERT_SHA256_GUID -Value ([Guid] 'c1c41626-504c-4092-aca9-41f936934328') -Option Constant
-New-Variable -Name EFI_CERT_X509_GUID   -Value ([Guid] 'a5c059a1-94e4-4aa7-87b5-ab155c2bf072') -Option Constant
+New-Variable -Name EFI_CERT_SHA256_GUID -Value ([guid]'c1c41626-504c-4092-aca9-41f936934328') -Option Constant
+New-Variable -Name EFI_CERT_X509_GUID   -Value ([guid]'a5c059a1-94e4-4aa7-87b5-ab155c2bf072') -Option Constant
 
 function ToUInt32 {
     param (
         [Parameter(Mandatory, Position=0)]
         [ValidateCount(4, 4)]
-        [Byte[]]$ByteArray
+        [byte[]]$ByteArray
     )
     if ([System.BitConverter]::IsLittleEndian) {
-        $result = [System.BitConverter]::ToUInt32($ByteArray, 0)
+        [uint32]$result = [System.BitConverter]::ToUInt32($ByteArray, 0)
     } else {
         $tempByteArray = $ByteArray + @()
         [Array]::Reverse($tempByteArray)
-        $result = [System.BitConverter]::ToUInt32($tempByteArray, 0)
+        [uint32]$result = [System.BitConverter]::ToUInt32($tempByteArray, 0)
     }
     return $result
 }
 function Get-CommonName {
     param(
         [Parameter(Mandatory, Position=0)]
-        [String]$DN
+        [string]$DN
     )
-    $dnParts = ($DN -split ',')
-    $cnPart = $dnParts[0].Trim()
+    [string[]]$dnParts = ($DN -split ',')
+    [string]$cnPart = $dnParts[0].Trim()
     if ($cnPart.StartsWith('CN=')) {
         return $cnPart.Substring(3)
     }
-    $cnPart = $dnParts[($dnParts.Length - 1)].Trim()
+    [string]$cnPart = $dnParts[($dnParts.Length - 1)].Trim()
     if ($cnPart.StartsWith('CN=')) {
         return $cnPart.Substring(3)
     }
     throw 'Failed to get Common Name'
 }
-$signatureDatabase = $Bytes
+[byte[]]$signatureDatabase = $Bytes
 # Signature Database should have at least one EFI Signature List
 if ($signatureDatabase.Length -lt 28) {
     throw 'Signature database does not have at least one EFI Signature List'
 }
-$dbIndex = 0
-$byteIndex = 0
+[int]$dbIndex = 0
+[int]$byteIndex = 0
 while ($byteIndex -lt $signatureDatabase.Length - 1) {
     if ($byteIndex + 28 -gt $signatureDatabase.Length) {
        throw 'Invalid EFI signature list'
     }
-    $signatureType = [Guid] [Byte[]] $signatureDatabase[$byteIndex .. ($byteIndex + 15)]
+    [guid]$signatureType = [byte[]]$signatureDatabase[$byteIndex .. ($byteIndex + 15)]
     # SignatureType should be an EFI_CERT_X509_GUID
     if ($signatureType -notin $EFI_CERT_X509_GUID,$EFI_CERT_SHA256_GUID) {
         throw "Unsupported signature type: $signatureType"
     }
-    $signatureListSize = ToUInt32 -ByteArray ([Byte[]] $signatureDatabase[($byteIndex + 16) .. ($byteIndex + 19)])
+    [uint32]$signatureListSize = ToUInt32 -ByteArray $signatureDatabase[($byteIndex + 16) .. ($byteIndex + 19)]
     # EFI Signature List should fit within Signature Database
     if ($byteIndex + $signatureListSize -gt $signatureDatabase.Length) {
         throw 'Invalid EFI signature list size'
     }
-    $signatureHeaderSize = ToUInt32 -ByteArray ([Byte[]] $signatureDatabase[($byteIndex + 20) .. ($byteIndex + 23)])
+    [uint32]$signatureHeaderSize = ToUInt32 -ByteArray $signatureDatabase[($byteIndex + 20) .. ($byteIndex + 23)]
     # SignatureHeaderSize should be zero
     if ($signatureHeaderSize -ne 0) {
         throw 'Signature header size is not zero'
     }
-    $signatureSize = ToUInt32 -ByteArray ([Byte[]] $signatureDatabase[($byteIndex + 24) .. ($byteIndex + 27)])
+    [uint32]$signatureSize = ToUInt32 -ByteArray $signatureDatabase[($byteIndex + 24) .. ($byteIndex + 27)]
     if ($signatureType -eq $EFI_CERT_X509_GUID) {
         # EFI Signature list should have one signature
         if ($signatureListSize - $signatureSize -ne 28) {
             throw 'Signature list does not have one and only one signature'
         }
-        $signatureOwner = [Guid] [Byte[]] $signatureDatabase[($byteIndex + 28) .. ($byteIndex + 43)]
-        $signatureData = [Byte[]] $signatureDatabase[($byteIndex + 44) .. ($byteIndex + $signatureListSize - 1)]
-        $filePath = Join-Path -Path "$($PWD.Path)" -ChildPath "db$dbIndex.der"
+        [guid]$signatureOwner = [byte[]]$signatureDatabase[($byteIndex + 28) .. ($byteIndex + 43)]
+        [byte[]]$signatureData = $signatureDatabase[($byteIndex + 44) .. ($byteIndex + $signatureListSize - 1)]
+        [string]$filePath = Join-Path -Path "$($PWD.Path)" -ChildPath "db$dbIndex.der"
         [System.IO.File]::WriteAllBytes($filePath, $signatureData)
     
-        $certificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($signatureData)
-        $subjectName = Get-CommonName -DN $certificate.Subject
+        [System.Security.Cryptography.X509Certificates.X509Certificate2]$certificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($signatureData)
+        [string]$subjectName = Get-CommonName -DN $certificate.Subject
 
-        $expirationTime = $certificate.NotAfter.ToUniversalTime()
-        $now = [System.DateTime]::UtcNow
-        $timeDelta = $expirationTime - $now
-        $certExpired = $expirationTime -lt $now
+        [datetime]$expirationTime = $certificate.NotAfter.ToUniversalTime()
+        [datetime]$now = [System.DateTime]::UtcNow
+        [timespan]$timeDelta = $expirationTime - $now
+        [bool]$certExpired = $expirationTime -lt $now
 
-        if ($certExpired) { $styleSubjectName = 'Red' }
-        else { $styleSubjectName = 'Green' }
+        if ($certExpired) { [string]$styleSubjectName = 'Red' }
+        else { [string]$styleSubjectName = 'Green' }
 
         Write-Host 'Saved the db cert, ' -NoNewline
         Write-Host $subjectName -NoNewline -ForegroundColor $styleSubjectName
@@ -176,27 +176,26 @@ while ($byteIndex -lt $signatureDatabase.Length - 1) {
         if ($signatureSize -ne 48) {
             throw 'Invalid signature size'
         }
-        $signatureDataSize = $signatureListSize - 28
+        [uint32]$signatureDataSize = $signatureListSize - 28
         if ($signatureDataSize % $signatureSize -ne 0) {
             throw 'Invalid signature list size'
         }
-        $signatureCount = $signatureDataSize / $signatureSize
-        $hashBytes = [Byte[]]::new(32 * $signatureCount)
-        $hashIndex = 0
-        $hashByteIndex = 0
-        $filePath = Join-Path -Path "$($PWD.Path)" -ChildPath "db$dbIndex.hsh"
+        [uint32]$signatureCount = $signatureDataSize / $signatureSize
+        [byte[]]$hashBytes = [byte[]]::new(32 * $signatureCount)
+        [int]$hashIndex = 0
+        [int]$hashByteIndex = 0
+        [string]$filePath = Join-Path -Path "$($PWD.Path)" -ChildPath "db$dbIndex.hsh"
         while ($hashIndex -lt $signatureCount) {
             [System.Array]::Copy($signatureDatabase, ($byteIndex + 28 + $hashIndex * 48 + 16), $hashBytes, $hashByteIndex, 32)
-            $dbHash = [System.BitConverter]::ToString($signatureDatabase[($byteIndex + 28 + $hashIndex * 48 + 16) .. ($byteIndex + 28 + $hashIndex * 48 + 47)]).ToLower() -replace '-' 
+            [string]$dbHash = [System.BitConverter]::ToString($signatureDatabase[($byteIndex + 28 + $hashIndex * 48 + 16) .. ($byteIndex + 28 + $hashIndex * 48 + 47)]).ToLower() -replace '-' 
             Write-Host "Saved the db hash, $dbHash, to db$dbIndex.hsh"
-            $signatureOwner = [Guid] [Byte[]] $signatureDatabase[($byteIndex + 28 + $hashIndex * 48) .. ($byteIndex + 28 + $hashIndex * 48 + 15)]
+            [guid]$signatureOwner = [byte[]]$signatureDatabase[($byteIndex + 28 + $hashIndex * 48) .. ($byteIndex + 28 + $hashIndex * 48 + 15)]
             Write-Host "  The signature owner is $signatureOwner"
             $hashIndex++
             $hashByteIndex += 32
         }
         [System.IO.File]::WriteAllBytes($filePath, $hashBytes)
     }
-
     $dbIndex++
     $byteIndex += $signatureListSize
 }
