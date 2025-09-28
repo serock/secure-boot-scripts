@@ -37,7 +37,8 @@ param (
     [byte[]]$Bytes
 )
 
-New-Variable -Name EFI_CERT_TYPE_PKCS7_GUID -Value ([guid] '4aafd29d-68df-49ee-8aa9-347d375665a7') -Option Constant
+New-Variable -Name EFI_CERT_TYPE_PKCS7_GUID -Value ([guid]'4aafd29d-68df-49ee-8aa9-347d375665a7') -Option Constant
+
 function ToUInt32 {
     param (
         [Parameter(Mandatory, Position=0)]
@@ -78,7 +79,7 @@ if ($revision -ne 0x0200) {
 if ($certificateType -ne 0x0ef1) {
     throw "Unexpected certificate type: $certificateType"
 }
-[guid]$certTypeGuid = [byte[]] $authVar[24 .. 39]
+[guid]$certTypeGuid = [byte[]]$authVar[24 .. 39]
 if ($certTypeGuid -ne $EFI_CERT_TYPE_PKCS7_GUID) {
     throw "Unsupported signature type: $certTypeGuid"
 }

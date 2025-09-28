@@ -68,12 +68,12 @@ function ToUInt32 {
     param (
         [Parameter(Mandatory, Position=0)]
         [ValidateCount(4, 4)]
-        [byte[]]$ByteArray
+        [byte[]]$Bytes
     )
     if ([System.BitConverter]::IsLittleEndian) {
-        [uint32]$result = [System.BitConverter]::ToUInt32($ByteArray, 0)
+        [uint32]$result = [System.BitConverter]::ToUInt32($Bytes, 0)
     } else {
-        $tempByteArray = $ByteArray + @()
+        $tempByteArray = $Bytes + @()
         [Array]::Reverse($tempByteArray)
         [uint32]$result = [System.BitConverter]::ToUInt32($tempByteArray, 0)
     }
@@ -112,17 +112,17 @@ while ($byteIndex -lt $signatureDatabase.Length - 1) {
     if ($signatureType -ne $EFI_CERT_X509_GUID) {
         throw "Unsupported signature type: $signatureType"
     }
-    [uint32]$signatureListSize = ToUInt32 -ByteArray $signatureDatabase[($byteIndex + 16) .. ($byteIndex + 19)]
+    [uint32]$signatureListSize = ToUInt32 -Bytes $signatureDatabase[($byteIndex + 16) .. ($byteIndex + 19)]
     # EFI Signature List should fit within Signature Database
     if ($byteIndex + $signatureListSize -gt $signatureDatabase.Length) {
         throw 'Invalid EFI signature list size'
     }
-    [uint32]$signatureHeaderSize = ToUInt32 -ByteArray $signatureDatabase[($byteIndex + 20) .. ($byteIndex + 23)]
+    [uint32]$signatureHeaderSize = ToUInt32 -Bytes $signatureDatabase[($byteIndex + 20) .. ($byteIndex + 23)]
     # SignatureHeaderSize should be zero
     if ($signatureHeaderSize -ne 0) {
         throw 'Signature header size is not zero'
     }
-    [uint32]$signatureSize = ToUInt32 -ByteArray $signatureDatabase[($byteIndex + 24) .. ($byteIndex + 27)]
+    [uint32]$signatureSize = ToUInt32 -Bytes $signatureDatabase[($byteIndex + 24) .. ($byteIndex + 27)]
     # EFI Signature list should have one signature
     if ($signatureListSize - $signatureSize -ne 28) {
         throw 'Signature list does not have one and only one signature'

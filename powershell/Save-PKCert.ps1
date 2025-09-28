@@ -50,7 +50,8 @@ param (
     [byte[]]$Bytes
 )
 
-New-Variable -Name EFI_CERT_X509_GUID -Value ([guid] 'a5c059a1-94e4-4aa7-87b5-ab155c2bf072') -Option Constant
+New-Variable -Name EFI_CERT_X509_GUID -Value ([guid]'a5c059a1-94e4-4aa7-87b5-ab155c2bf072') -Option Constant
+
 function ToUInt32 {
     param (
         [Parameter(Mandatory, Position=0)]
