@@ -16,9 +16,9 @@ Running PowerShell as Administrator, save the secure boot certificates.
 if (-not (Test-Path -Path 'C:\secure-boot\backup')) { New-Item -Path 'C:\secure-boot\backup' -ItemType Directory }
 Set-Location -Path 'C:\secure-boot\backup'
 
-Invoke-WebRequest -Uri '{{ site.github.repository_url }}/raw/201054b2cbc0c1a29c6dea466d9573da5edd1238/powershell/Save-PKCert.ps1'           -OutFile 'Save-PKCert.ps1'
-Invoke-WebRequest -Uri '{{ site.github.repository_url }}/raw/201054b2cbc0c1a29c6dea466d9573da5edd1238/powershell/Save-KEKCerts.ps1'         -OutFile 'Save-KEKCerts.ps1'
-Invoke-WebRequest -Uri '{{ site.github.repository_url }}/raw/201054b2cbc0c1a29c6dea466d9573da5edd1238/powershell/Save-DbCertsAndHashes.ps1' -OutFile 'Save-DbCertsAndHashes.ps1'
+Invoke-WebRequest -Uri '{{ site.github.repository_url }}/raw/3626abfbcafd65ed5fa1a18ebacb5a58f7aff9c1/powershell/Save-PKCert.ps1'           -OutFile 'Save-PKCert.ps1'
+Invoke-WebRequest -Uri '{{ site.github.repository_url }}/raw/3626abfbcafd65ed5fa1a18ebacb5a58f7aff9c1/powershell/Save-KEKCerts.ps1'         -OutFile 'Save-KEKCerts.ps1'
+Invoke-WebRequest -Uri '{{ site.github.repository_url }}/raw/3626abfbcafd65ed5fa1a18ebacb5a58f7aff9c1/powershell/Save-DbCertsAndHashes.ps1' -OutFile 'Save-DbCertsAndHashes.ps1'
 
 if ((Get-ExecutionPolicy) -in 'AllSigned','Restricted') { Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process }
 
